@@ -1,4 +1,4 @@
 nbody_threejs
 =============
 
-NBody in three.js
+NBody example using three.js
