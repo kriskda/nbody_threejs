@@ -118,6 +118,23 @@ function BodyView() {
 	
 }
 
+/*
+function NBodySystemView() {
+
+	this.particleSystem = new THREE.ParticleSystem(
+		geometry, 
+		new THREE.ParticleBasicMaterial({size: 15}));
+	
+	this.addToScene = function() {	
+		scene.add(this.particleSystem);	
+	}
+	
+	this.updatePosition = function(posVect) {		
+		this.sphere.position.set(posVect[0], posVect[1], 0);
+	}
+	
+}
+*/
 
 function BodyModel() {
 	
