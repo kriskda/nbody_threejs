@@ -21,7 +21,7 @@ function init() {
 function initRenderer() {
 	renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.setSize(800, 600);  
-    renderer.setClearColor(0xEEEEEE, 1); 
+    renderer.setClearColor(0x000000, 1); 
     
     document.body.appendChild(renderer.domElement);
 }
@@ -46,95 +46,95 @@ function initLight() {
 
 
 function initNBody() {
-	nbodyManager = new NBodyManager(1500);
+	nbodyManager = new NBodyManager(500);
 	nbodyManager.initBodies();
 }
 
 
 function animate() {
-	nbodyManager.calculateTimeStep();
 	
-	requestAnimationFrame(animate);	
+	//for (var i = 0 ; i < 10 ; i++) {
+		nbodyManager.calculateTimeStep();
+	//}
+	
+	nbodyManager.updateView();
+	
 	renderer.render(scene, camera);
+	requestAnimationFrame(animate);		
 }
 
 
 function NBodyManager(numberOfBodies) {
 
 	this.bodyModelList = [];
+	this.nbodySystemView = new NBodySystemView();
 	
 	this.initBodies = function() {
 	
 		for (var i = 0 ; i < numberOfBodies ; i++) {
-			var xRandom = Math.random() * 20 - 10;
-			var yRandom = Math.random() * 20 - 10;
-
-			var bodyView = new BodyView();					
+			var rRandom = Math.random() * 10;
+			var thetaRandom = 2 * Math.random() * Math.PI;
+			var vel = 0.01 * Math.sqrt(rRandom);
+		
 			var bodyModel = new BodyModel();
 			
 			bodyModel.bodyIndex = i;
-			bodyModel.bodyView = bodyView;
-			bodyModel.posVect = [xRandom, yRandom];
-			bodyModel.velVect = [0, 0];
-			bodyModel.GM = 1e10 * 6.67385e-11
-			bodyModel.integrator = new Integrator();
-			
-			bodyView.addToScene();	
-			
+			bodyModel.posVect = [rRandom * Math.cos(thetaRandom), rRandom * Math.sin(thetaRandom)];
+			bodyModel.velVect = [-vel * Math.sin(thetaRandom), vel * Math.cos(thetaRandom)];
+			bodyModel.GM = 1e5 * 6.67385e-11
+			bodyModel.integrator = new EulerIntegrator(0.01);
+
 			this.bodyModelList.push(bodyModel);
+			this.nbodySystemView.particleSystem.geometry.vertices.push(new THREE.Vector3(0, 0, 0));	
 		}
 		
 		for (var i = 0 ; i < numberOfBodies ; i++) {
 			this.bodyModelList[i].bodyModelList = this.bodyModelList;
 		}
 		
+		this.nbodySystemView.bodyModelList = this.bodyModelList;	
+		this.nbodySystemView.addToScene();	
 	}
 	
-	this.calculateTimeStep = function() {
-		
+	this.calculateTimeStep = function() {		
 		for (var i = 0 ; i < numberOfBodies ; i++) {
 			this.bodyModelList[i].move();
-			this.bodyModelList[i].updateView();
 		}
-		
+	}
+	
+	this.updateView = function() {
+		this.nbodySystemView.updatePositions();	
 	}
 	
 }
 
 
-function BodyView() {
-	
-	this.sphere = new THREE.Mesh(
-			new THREE.SphereGeometry(0.1, 1, 1), 
-			new THREE.MeshPhongMaterial({color: 0x000000}));	
-	
-	this.addToScene = function() {	
-		scene.add(this.sphere);	
-	}
-	
-	this.updatePosition = function(posVect) {		
-		this.sphere.position.set(posVect[0], posVect[1], 0);
-	}
-	
-}
-
-/*
 function NBodySystemView() {
 
+	this.bodyModelList;
 	this.particleSystem = new THREE.ParticleSystem(
-		geometry, 
-		new THREE.ParticleBasicMaterial({size: 15}));
+		new THREE.Geometry(),
+		new THREE.ParticleBasicMaterial({size: 0.2}));
 	
 	this.addToScene = function() {	
 		scene.add(this.particleSystem);	
 	}
 	
-	this.updatePosition = function(posVect) {		
-		this.sphere.position.set(posVect[0], posVect[1], 0);
+	this.updatePositions = function() {				
+		var numberOfBodies = this.bodyModelList.length;
+
+		for (var i = 0 ; i < numberOfBodies ; i++) {
+			var body = this.bodyModelList[i];
+			var particle = this.particleSystem.geometry.vertices[i];
+
+			particle.set(body.posVect[0], body.posVect[1], 0);
+		}		
+
+		this.particleSystem.geometry.verticesNeedUpdate = true;
 	}
 	
 }
-*/
+
 
 function BodyModel() {
 	
@@ -175,23 +175,33 @@ function BodyModel() {
 		this.posVect = stateVect[0];
 		this.velVect = stateVect[1];
 	}
-	
-	this.updateView = function() {
-		this.bodyView.updatePosition(this.posVect);
+
+}
+
+
+function EulerIntegrator(dt) {
+
+	this.integrate = function(bodyModel) {
+		var x1 = bodyModel.posVect;
+		var v1 = bodyModel.velVect;
+		var a1 = bodyModel.accel(x1, v1);
+		
+		var posVect = [x1[0] + v1[0] * dt, x1[1] + v1[1] * dt];
+		var velVect = [v1[0] + a1[0] * dt, v1[1] + a1[1] * dt];
+		
+		return [posVect, velVect];
 	}
 	
 }
 
 
-function Integrator() {
+function RK4Integrator(dt) {
 
 	this.integrate = function(bodyModel) {
 		var x1, x2, x3, x4;
 		var v1, v2, v3, v4;
 		var a1, a2, a3, a4;
-		
-		var dt = 0.01;
-		
+
 		x1 = bodyModel.posVect;
 		v1 = bodyModel.velVect;
 		a1 = bodyModel.accel(x1, v1);
