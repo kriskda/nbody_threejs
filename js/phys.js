@@ -69,20 +69,39 @@ function NBodyManager(numberOfBodies) {
 	this.bodyModelList = [];
 	this.nbodySystemView = new NBodySystemView();
 	
-	this.initBodies = function() {
+	this.initBodies = function() {	
+		var stateVectorList = [];
+	
+		for (var i = 0 ; i < 250 ; i++) {
+			var rRandom = Math.random() * 5;
+			var thetaRandom = 2 * Math.random() * Math.PI;
+			var vel = 0;//Math.sqrt(500 / rRandom);
+			
+			var posVect = [5 + rRandom * Math.cos(thetaRandom), 5 + rRandom * Math.sin(thetaRandom)];
+			var velVect = [-vel * Math.sin(thetaRandom), vel * Math.cos(thetaRandom)];
+			
+			stateVectorList.push([posVect, velVect]);
+		}
+		
+		for (var i = 0 ; i < 250 ; i++) {
+			var rRandom = Math.random() * 5;
+			var thetaRandom = 2 * Math.random() * Math.PI;
+			var vel = 0;//Math.sqrt(500 / rRandom);
+			
+			var posVect = [-5 + rRandom * Math.cos(thetaRandom), -5 + rRandom * Math.sin(thetaRandom)];
+			var velVect = [-vel * Math.sin(thetaRandom), vel * Math.cos(thetaRandom)];
+			
+			stateVectorList.push([posVect, velVect]);
+		}
 	
 		for (var i = 0 ; i < numberOfBodies ; i++) {
-			var rRandom = Math.random() * 10;
-			var thetaRandom = 2 * Math.random() * Math.PI;
-			var vel = 0.01 * Math.sqrt(rRandom);
-		
 			var bodyModel = new BodyModel();
 			
 			bodyModel.bodyIndex = i;
-			bodyModel.posVect = [rRandom * Math.cos(thetaRandom), rRandom * Math.sin(thetaRandom)];
-			bodyModel.velVect = [-vel * Math.sin(thetaRandom), vel * Math.cos(thetaRandom)];
-			bodyModel.GM = 1e5 * 6.67385e-11
-			bodyModel.integrator = new EulerIntegrator(0.01);
+			bodyModel.posVect = stateVectorList[i][0];
+			bodyModel.velVect = stateVectorList[i][1];
+			bodyModel.GM = 1e11 * 6.67385e-11
+			bodyModel.integrator = new EulerIntegrator(0.001);
 
 			this.bodyModelList.push(bodyModel);
 			this.nbodySystemView.particleSystem.geometry.vertices.push(new THREE.Vector3(0, 0, 0));	
