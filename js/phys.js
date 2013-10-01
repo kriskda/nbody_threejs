@@ -71,8 +71,10 @@ function NBodyManager(numberOfBodies) {
 	
 	this.initBodies = function() {	
 		var stateVectorList = [];
-	
-		for (var i = 0 ; i < 250 ; i++) {
+		
+		halfNumberOfBodies = numberOfBodies / 2;			
+			
+		for (var i = 0 ; i < halfNumberOfBodies ; i++) {
 			var rRandom = Math.random() * 5;
 			var thetaRandom = 2 * Math.random() * Math.PI;
 			var vel = 0;//Math.sqrt(500 / rRandom);
@@ -83,7 +85,7 @@ function NBodyManager(numberOfBodies) {
 			stateVectorList.push([posVect, velVect]);
 		}
 		
-		for (var i = 0 ; i < 250 ; i++) {
+		for (var i = 0 ; i < halfNumberOfBodies ; i++) {
 			var rRandom = Math.random() * 5;
 			var thetaRandom = 2 * Math.random() * Math.PI;
 			var vel = 0;//Math.sqrt(500 / rRandom);
